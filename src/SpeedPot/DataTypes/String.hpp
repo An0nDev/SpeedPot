@@ -14,13 +14,13 @@ namespace SpeedPot::DataTypes {
     public:
         static ReadResult <StringNR> readFrom (Network::RawClientConnector & clientConnector) {
             ReadResult <VarIntNR> lengthReadResult = VarInt::readFrom (clientConnector);
-            VarIntNR length = lengthReadResult.nativeRepresentation;
+            VarIntNR length = lengthReadResult.value;
             if (length > MAX_LENGTH_BYTES) throw ProtocolViolationException ("readFrom: String is too big");
 
             Common::Buffer buffer = clientConnector.read (length);
             StringNR result ((char*) buffer.pointer, length);
 
-            return ReadResult <StringNR> (result, lengthReadResult.fieldLength + length);
+            return ReadResult <StringNR> (result, lengthReadResult.length + length);
         };
         static Common::Buffer toBinaryRepresentation (StringNR const & nativeRepresentation) {
             if (nativeRepresentation.size () > MAX_LENGTH_BYTES) throw ProtocolViolationException ("toBinaryRepresentation: String is too big");
@@ -34,4 +34,8 @@ namespace SpeedPot::DataTypes {
         };
     };
     typedef DataType <StringNR> String;
+    typedef StringNR ChatNR;
+    typedef DataType <ChatNR> Chat;
+    typedef StringNR IdentifierNR;
+    typedef DataType <IdentifierNR> Identifier;
 }

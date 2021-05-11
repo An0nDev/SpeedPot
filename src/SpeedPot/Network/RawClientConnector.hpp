@@ -8,5 +8,6 @@ namespace SpeedPot::Network {
     public:
         class EOFError : public std::exception {};
         virtual DataTypes::Common::Buffer read (DataTypes::Common::Length size) = 0;
+        virtual void write (DataTypes::Common::Buffer const & buffer) = 0;
     };
 }

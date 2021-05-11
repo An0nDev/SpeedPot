@@ -11,6 +11,7 @@ namespace SpeedPot::Network {
     public:
         explicit DummyRawClientConnector (DataTypes::Common::Buffer const & sourceData);
         DataTypes::Common::Buffer read (DataTypes::Common::Length size);
+        void write (DataTypes::Common::Buffer const & buffer);
         ~DummyRawClientConnector ();
     };
 }

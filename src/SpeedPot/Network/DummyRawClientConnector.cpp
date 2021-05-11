@@ -15,4 +15,7 @@ namespace SpeedPot::Network {
             std::cerr << "DummyRawClientConnector: " << (data.size - currentIndex) << " bytes left" << std::endl;
         }
     }
+    void DummyRawClientConnector::write (DataTypes::Common::Buffer const & buffer) {
+        std::cout << "DummyRawClientConnector received buffer " << buffer << " to write" << std::endl;
+    }
 }

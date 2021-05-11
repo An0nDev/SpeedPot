@@ -3,23 +3,25 @@
 #include <iostream>
 
 #include "../DataTypes/VarInt.hpp"
-#include "../DataTypes/String.hpp"
 #include "../Network/RawClientConnector.hpp"
-#include "../Network/Client.hpp"
-#include "Common.hpp"
+
+namespace SpeedPot::Network {
+    class Client;
+}
 
 namespace SpeedPot::Packet {
     class Packet {
+        // serverbound packets should have a private constructor (called by readFrom)
     public:
-        static Packet* readFrom (Network::RawClientConnector & clientConnector) {
-            return new Packet ();
-        };
-        static void handle (Packet* packet, Network::Client & client) {
-            std::cout << "woo! called" << std::endl;
-            throw std::runtime_error ("shit went down");
-        };
-        ~Packet () {
-            std::cout << "called ~Packet" << std::endl;
-        }
+        // all packets must have this (used in List, sendTo)
+        static const DataTypes::VarIntNR ID;
+
+        // must be implemented by serverbound packets
+        static Packet* readFrom (Network::RawClientConnector & clientConnector) = delete;
+        static void handle (Packet* packet, Network::Client & client) = delete;
+
+        // clientbound packets should have a public constructor (called from user code)
+
+        virtual ~Packet () {};
     };
 }

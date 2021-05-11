@@ -6,14 +6,16 @@
 #include "Base.hpp"
 #include "../DataTypes/VarInt.hpp"
 #include "../Network/RawClientConnector.hpp"
-#include "../Network/Client.hpp"
+#include "../Network/State.hpp"
 
-#include "Packets/Serverbound/Handshaking/Handshake.hpp"
+#include "Packets/Serverbound/Handshaking/HandshakePacket.hpp"
+#include "Packets/Serverbound/Status/PingPacket.hpp"
+#include "Packets/Serverbound/Status/RequestPacket.hpp"
 
 namespace SpeedPot::Packet {
     class List {
     public:
-        typedef Network::Client::State RequiredState;
+        typedef Network::State RequiredState;
         typedef DataTypes::VarIntNR RequiredID;
         typedef Packet* (*PointerToPacketReadFrom) (Network::RawClientConnector &);
         typedef void (*PointerToPacketHandle) (Packet*, Network::Client &);
@@ -21,20 +23,28 @@ namespace SpeedPot::Packet {
         typedef std::tuple <PointerToPacketReadFrom, PointerToPacketHandle> PacketListEntry;
         typedef std::map <RequiredID, PacketListEntry> IDsToEntries;
         typedef std::map <RequiredState, IDsToEntries> StatesToIDs;
-        typedef std::map <Direction, StatesToIDs> DirectionsToStates;
-        DirectionsToStates PACKET_LIST; // READ-ONLY! do not modify
+        StatesToIDs SERVERBOUND_PACKET_LIST; // READ-ONLY! do not modify
         List () {
-            IDsToEntries clientboundHandshaking;
-            StatesToIDs clientbound;
-            clientbound [Network::Client::State::HANDSHAKING] = clientboundHandshaking;
+            using namespace Packets::Serverbound;
 
-            IDsToEntries serverboundHandshaking;
-            serverboundHandshaking [0x00] = {&Packets::HandshakePacket::readFrom, &Packets::HandshakePacket::handle};
-            StatesToIDs serverbound;
-            serverbound [Network::Client::State::HANDSHAKING] = serverboundHandshaking;
+            {
+                using namespace Handshaking;
+                IDsToEntries handshaking;
 
-            PACKET_LIST [Direction::CLIENTBOUND] = clientbound;
-            PACKET_LIST [Direction::SERVERBOUND] = serverbound;
+                handshaking [HandshakePacket::ID] = {&HandshakePacket::readFrom, &HandshakePacket::handle};
+
+                SERVERBOUND_PACKET_LIST [Network::State::HANDSHAKING] = handshaking;
+            }
+
+            {
+                using namespace Status;
+                IDsToEntries status;
+
+                status [RequestPacket::ID] = {&RequestPacket::readFrom, &RequestPacket::handle};
+                status [PingPacket::ID] = {&PingPacket::readFrom, &PingPacket::handle};
+
+                SERVERBOUND_PACKET_LIST [Network::State::STATUS] = status;
+            }
         }
     };
 }
